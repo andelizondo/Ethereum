@@ -1,8 +1,8 @@
 pragma solidity ^0.4.13;
 
 contract HumanReadable {
-	/* Human-readable properties of the token */
-	string public version;
+	// Human-readable properties of the token
+	string internal version;
 	string public name;
 	string public symbol;
 	uint8 public decimals;
@@ -11,11 +11,11 @@ contract HumanReadable {
 contract ERC20 is HumanReadable {
 	// ERC Token Standard #20 Interface
 	// https://github.com/ethereum/EIPs/issues/20
-	
+
 	// Get the total token supply
 	uint256 public totalSupply;
 
-	// Get the account balance of another account with address _owner
+	// Get the account balance of an account
 	mapping (address => uint256) public balanceOf;
 
 	// Returns the amount which _spender is still allowed to withdraw from _owner
@@ -39,12 +39,17 @@ contract ERC20 is HumanReadable {
 	event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
-contract Owned {
-	// Account / Address that owns the contract
+contract Ownable {
+	// Makes the token ownable to provide security features
+
+	// Account-Address that owns the contract
 	address public owner;
 
+	/* This notifies clients about a change of ownership */
+	event OwnershipChange(address indexed _owner);
+
 	// Initializes the contract and sets the owner to the contract creator
-	function Owned() {
+	function Ownable() {
 		owner = msg.sender;
 	}
 
@@ -55,30 +60,31 @@ contract Owned {
 	}
 
 	// Transfers the ownership of the contract to another address
-	function transferOwnership(address _newOwner) onlyOwner {
+	function transferOwnership(address _newOwner) onlyOwner returns (bool success) {
 		owner = _newOwner;
+		OwnershipChange(owner);
+		return true;
 	}
 }
 
-contract Token is ERC20, Owned {
-	
+contract Token is ERC20, Ownable {
 	/* Initializes contract with initial supply tokens to the creator of the contract */
 	function Token(
-		string tokenVersion,
-		string tokenName,
-		string tokenSymbol,
-		uint8  tokenDecimals,
-		uint256 initialSupply
+		string _version,
+		string _name,
+		string _symbol,
+		uint8  _decimals,
+		uint256 _totalSupply
 		) {
-		version = tokenVersion;								// Set the version for display purposes	
-		name = tokenName;                                   // Set the name for display purposes
-		symbol = tokenSymbol;                               // Set the symbol for display purposes
-		decimals = tokenDecimals;                           // Amount of decimals for display purposes	
-		totalSupply = initialSupply;                        // Update total supply
+		version = _version;									// Set the version for display purposes
+		name = _name;                                   	// Set the name for display purposes
+		symbol = _symbol;                               	// Set the symbol for display purposes
+		decimals = _decimals;                           	// Amount of decimals for display purposes
+		totalSupply = _totalSupply;                        	// Update total supply
 		balanceOf[msg.sender] = totalSupply;              	// Give the creator all initial tokens
 	}
 
-	/* Internal transfer, only can be called by this contract */
+	/* Internal transfer, only can be called by this or inherited contracts  */
 	function _transfer(address _from, address _to, uint _value) internal {
 		require (_to != 0x0);								// Prevent transfer to 0x0 address. Use burn() instead
 		require (balanceOf[_from] >= _value);				// Check if the sender has enough
@@ -118,8 +124,8 @@ contract Token is ERC20, Owned {
 }
 
 contract Mintable is Token {
-	/* This notifies clients about the amount burnt */
-	event Mint(address indexed from, uint256 value);
+	/* This notifies clients about the amount minted */
+	event Mint(address indexed _from, uint256 _value);
 
 	/* Creates more token supply and sends it to the specified account */
 	function mintToken(uint256 _value) onlyOwner returns (bool success) {
@@ -134,12 +140,13 @@ contract Mintable is Token {
 
 contract Burnable is Token {
 	/* This notifies clients about the amount burnt */
-	event Burn(address indexed from, uint256 value);
+	event Burn(address indexed _from, uint256 _value);
 
 	/// @notice Remove `_value` tokens from the system irreversibly
 	/// @param _value the amount of money to burn
 	function burn(uint256 _value) onlyOwner returns (bool success) {
 		require (balanceOf[owner] >= _value);			 // Check if the sender has enough
+		require (totalSupply - _value >= 0); 			 // Check if there's enough supply
 		balanceOf[owner] -= _value;						 // Subtract from the owner
 		totalSupply -= _value;							 // Updates totalSupply
 		Burn(owner, _value);
@@ -151,16 +158,16 @@ contract Frozable is Token {
 	mapping (address => bool) public frozenAccount;
 
 	/* This notifies clients about the account frozen */
-	event FrozenFunds(address indexed target, bool frozen);
+	event FrozenFunds(address indexed _target, bool _frozen);
 
 	/* Frozes an account to disable transfers */
-	function freezeAccount(address _target, bool _freeze) onlyOwner {
+	function freezeAccount(address _target, bool _freeze) onlyOwner returns (bool success) {
 		frozenAccount[_target] = _freeze;
 		FrozenFunds(_target, _freeze);
+		return true;
 	}
 
-	/// Overrides the transfer function with Frozable attributes
-	/* Internal transfer, only can be called by this contract */
+	// Overrides the internal _transfer function with Frozable attributes
 	function _transfer(address _from, address _to, uint _value) internal {
 		require (_to != 0x0);								// Prevent transfer to 0x0 address. Use burn() instead
 		require (balanceOf[_from] >= _value);				// Check if the sender has enough
@@ -174,7 +181,12 @@ contract Frozable is Token {
 }
 
 contract Disposable is Token {
+	// This notifies clients about the self destruction of the contract
+	// and which account got the remaining balance on the contract
+	event Dispose(address indexed _owner, uint256 _value);
+
 	function kill() onlyOwner {
+		Dispose(owner, this.balance);
 		selfdestruct(owner);
 	}
 }
@@ -183,18 +195,22 @@ contract Tradeable is Token {
 	/* Public variables of the eth/token price */
 	uint256 public tokenPrice;
 	uint256 public etherPrice;
-	uint256 public oneTokenInWei;
+	uint256 private oneTokenInWei;
+
+	/* This notifies clients about the account frozen */
+	event PriceUpdate(address indexed _owner, uint256 _tokenPrice, uint256 _etherPrice, uint256 _oneTokenInWei);
 
 	/* Initializes contract with the provided prices */
-	function Tradeable (uint256 _tokenPrice, uint256 _etherPrice) {
+	function Tradeable(uint256 _tokenPrice, uint256 _etherPrice) {
 		updatePrices(_tokenPrice, _etherPrice);
 	}
 
 	/* Sets the price for which the tokes can be bought (ETH/TKN) */
-	function updatePrices(uint256 _newTokenPrice, uint256 _newEtherPrice) onlyOwner {
-		tokenPrice = _newTokenPrice;
-		etherPrice = _newEtherPrice;
+	function updatePrices(uint256 _tokenPrice, uint256 _etherPrice) onlyOwner {
+		tokenPrice = _tokenPrice;
+		etherPrice = _etherPrice;
 		_setTokenWeiPrice();
+		PriceUpdate(msg.sender, tokenPrice, etherPrice, oneTokenInWei);
 	}
 
 	/* Internal transfer, only can be called by this contract */
@@ -204,14 +220,14 @@ contract Tradeable is Token {
 
 	/* Buys tokens with Eth at current Token price */
 	function buy() payable returns (uint256 amount) {
-		amount = (msg.value * (10 ** uint256(decimals))) / oneTokenInWei;		// calculates the amount of tokens to send
+		amount = (msg.value * (10 ** uint256(decimals))) / oneTokenInWei;	// calculates the amount of tokens to send
 		_transfer(owner, msg.sender, amount);				// Transfer the amount from the owner to the sender
 		return amount;										// ends function and returns
 	}
 
 	/* Sells tokens for Eth at current Token price */
 	function sell(uint256 _amount) returns (uint256 revenue) {
-		revenue = _amount * oneTokenInWei / (10 ** uint256(decimals));	// calculates the amount of eth to send
+		revenue = _amount * oneTokenInWei / (10 ** uint256(decimals));		// calculates the amount of eth to send
 		require(this.balance >= revenue);    				// checks if the contract has enough ether to buy the tokens
 		_transfer(msg.sender, owner, _amount);				// Transfer the amount from the sender to the owner
 		msg.sender.transfer(revenue);     					// sends ether to the seller. It's important to do this last to avoid recursion attacks
@@ -220,16 +236,26 @@ contract Tradeable is Token {
 }
 
 contract IterToken is Token, Tradeable, Mintable, Burnable, Frozable, Disposable {
-	
-	/* Initializes contract with its initial Token and Tradeable properties */
+	// Basic Token Properties
+	string private _version = '0.1';
+	string private _name = 'IterToken';
+	string private _symbol = 'ITR';
+	uint8  private _decimals = 3;
+	uint256 private _totalSupply = 21000000000;
+
+	// Tradeable Token Properties
+	uint256 _tokenPrice = 2121;
+	uint256 _etherPrice = 268630;
+
+	/* Initializes contract with its initial Basic and Tradeable properties */
 	function IterToken(
 	) Token (
-		'0.1', 'IterToken', 'ITR', 3, 21000000000
+		_version, _name, _symbol, _decimals, _totalSupply
 	) Tradeable (
-		2121, 268630
+		_tokenPrice, _etherPrice
 	) {}
 
-	/* This unnamed function is called whenever someone tries to send ether to it */
+	/* This unnamed function is called whenever someone tries to send ether to the contract */
 	function() {
 		revert();	// Prevents accidental sending of ether
 	}

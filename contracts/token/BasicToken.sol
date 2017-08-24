@@ -1,28 +1,30 @@
 pragma solidity ^0.4.15;
 
-import './HumanReadableToken.sol';
 import './ERC20Token.sol';
-import './OwnedToken.sol';
-import './FrozableToken.sol';
-import './DisposableToken.sol';
+import './OwnableToken.sol';
 
-contract Token is HumanReadable, ERC20, Owned, Frozable, Disposable {
-	/* This creates an array with all balances and (spent) allowances */
-	mapping (address => uint256) public balanceOf;
-	mapping (address => mapping (address => uint256)) public allowance;
-	
+contract Token is ERC20, Ownable {
 	/* Initializes contract with initial supply tokens to the creator of the contract */
-	function Token() {
-		balanceOf[msg.sender] = totalSupply;				// Give the creator all initial tokens
+	function Token(
+		string _version,
+		string _name,
+		string _symbol,
+		uint8  _decimals,
+		uint256 _totalSupply
+		) {
+		version = _version;									// Set the version for display purposes
+		name = _name;                                   	// Set the name for display purposes
+		symbol = _symbol;                               	// Set the symbol for display purposes
+		decimals = _decimals;                           	// Amount of decimals for display purposes
+		totalSupply = _totalSupply;                        	// Update total supply
+		balanceOf[msg.sender] = totalSupply;              	// Give the creator all initial tokens
 	}
 
-	/* Internal transfer, only can be called by this contract */
+	/* Internal transfer, only can be called by this or inherited contracts  */
 	function _transfer(address _from, address _to, uint _value) internal {
 		require (_to != 0x0);								// Prevent transfer to 0x0 address. Use burn() instead
 		require (balanceOf[_from] >= _value);				// Check if the sender has enough
 		require (balanceOf[_to] + _value > balanceOf[_to]); // Check for overflows
-		require (!frozenAccount[_from]);					// Check that both accounts
-		require (!frozenAccount[_to]);						// are not currently frozen
 		balanceOf[_from] -= _value;							// Subtract from the sender
 		balanceOf[_to] += _value;							// Add the same to the recipient
 		Transfer(_from, _to, _value);						// Notify anyone listening that this transfer took place

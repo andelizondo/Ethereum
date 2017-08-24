@@ -1,12 +1,16 @@
 pragma solidity ^0.4.15;
 
-// Makes the token ownable and provides security features 
-contract Owned {
+contract Ownable {
+	// Makes the token ownable to provide security features
+
 	// Account-Address that owns the contract
 	address public owner;
 
+	/* This notifies clients about a change of ownership */
+	event OwnershipChange(address indexed _owner);
+
 	// Initializes the contract and sets the owner to the contract creator
-	function Owned() {
+	function Ownable() {
 		owner = msg.sender;
 	}
 
@@ -17,7 +21,9 @@ contract Owned {
 	}
 
 	// Transfers the ownership of the contract to another address
-	function transferOwnership(address _newOwner) onlyOwner {
+	function transferOwnership(address _newOwner) onlyOwner returns (bool success) {
 		owner = _newOwner;
+		OwnershipChange(owner);
+		return true;
 	}
 }

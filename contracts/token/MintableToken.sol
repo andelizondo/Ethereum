@@ -3,8 +3,8 @@ pragma solidity ^0.4.15;
 import './BasicToken.sol';
 
 contract Mintable is Token {
-	/* This notifies clients about the amount burnt */
-	event Mint(address indexed from, uint256 value);
+	/* This notifies clients about the amount minted */
+	event Mint(address indexed _from, uint256 _value);
 
 	/* Creates more token supply and sends it to the specified account */
 	function mintToken(uint256 _value) onlyOwner returns (bool success) {

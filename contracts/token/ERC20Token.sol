@@ -1,8 +1,20 @@
 pragma solidity ^0.4.15;
 
-// ERC Token Standard #20 Interface
-// https://github.com/ethereum/EIPs/issues/20
-contract ERC20 {
+import './HumanReadableToken.sol';
+
+contract ERC20 is HumanReadable {
+	// ERC Token Standard #20 Interface
+	// https://github.com/ethereum/EIPs/issues/20
+
+	// Get the total token supply
+	uint256 public totalSupply;
+
+	// Get the account balance of an account
+	mapping (address => uint256) public balanceOf;
+
+	// Returns the amount which _spender is still allowed to withdraw from _owner
+	mapping (address => mapping (address => uint256)) public allowance;
+
 	// Send _value amount of tokens to address _to
 	function transfer(address _to, uint256 _value) returns (bool success);
 
