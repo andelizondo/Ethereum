@@ -43,9 +43,10 @@ contract CrowdsaleVault is Ownable {
         RefundsEnabled();
     }
 
-    function refund(address _investor) {
+    function refund(address _investor) onlyOwner {
         require(state == State.Refunding);
         uint256 depositedValue = deposited[_investor];
+        require(depositedValue > 0);
         deposited[_investor] = 0;
         _investor.transfer(depositedValue);
         Refunded(_investor, depositedValue);
