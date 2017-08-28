@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
 import './ERC20Token.sol';
-import './OwnableToken.sol';
+import './Ownable.sol';
 
 contract Token is ERC20, Ownable {
 	/* Initializes contract with initial supply tokens to the creator of the contract */
