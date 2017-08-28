@@ -41,9 +41,9 @@ contract Crowdsale {
         require(_endTime >= _startTime);
         require(_wallet != 0x0);
 
-        crowdsaleToken = CrowdsaleToken(_tokenAddress);
-        //require(crowdsaleToken.owner() == msg.sender);
-        //crowdsaleToken.approveMintAgent(this, true);
+        crowdsaleToken = CrowdsaleToken(_tokenAddress);     // Opens the token previously created crowdsale token 
+        require(crowdsaleToken.owner() == msg.sender);      // Checks that the crowdsale creator is the owner of the Token
+        // crowdsaleToken.approveMintAgent(this, true);     // TODO: Approve this contract as Mint Agent
 
         startTime = _startTime;
         endTime = _endTime;
