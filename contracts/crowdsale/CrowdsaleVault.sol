@@ -17,7 +17,7 @@ contract CrowdsaleVault is Ownable {
 
     event RefundsEnabled();
     event Withdraw(address indexed _beneficiary, uint256 _amount);
-    event Refunded(address indexed _beneficiary, uint256 _amount);
+    event Refund(address indexed _beneficiary, uint256 _amount);
 
     function CrowdsaleVault(address _wallet) {
         require(_wallet != 0x0);
@@ -28,13 +28,6 @@ contract CrowdsaleVault is Ownable {
     function deposit(address _investor) onlyOwner payable {
         require(state == State.Active);
         deposited[_investor] += msg.value;
-    }
-
-    function withdraw() onlyOwner {
-        require(state == State.Active);
-        state = State.Closed;
-        wallet.transfer(this.balance);
-        Withdraw(wallet, this.balance);
     }
 
     function enableRefunds() onlyOwner {
@@ -49,6 +42,13 @@ contract CrowdsaleVault is Ownable {
         require(depositedValue > 0);
         deposited[_investor] = 0;
         _investor.transfer(depositedValue);
-        Refunded(_investor, depositedValue);
+        Refund(_investor, depositedValue);
+    }
+
+    function withdraw() onlyOwner {
+        require(state == State.Active);
+        state = State.Closed;
+        wallet.transfer(this.balance);
+        Withdraw(wallet, this.balance);
     }
 }

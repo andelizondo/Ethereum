@@ -7,7 +7,7 @@ contract IterCrowdsale is Crowdsale, Refundable {
     uint256 _startTime = now;
     uint256 _endTime = now + 12 * 1 minutes;
     address _wallet = msg.sender;
-    address _token = 0x6AAb7B2622FaA423545AF77A2795424F4cfbB301;
+    address _token = 0xccfC733783A54aeC7F2d654011F9D7ce41ef395c;
 
 	// Refundable Crowdsale Properties
 	uint256 private _fundingGoal = 21;
