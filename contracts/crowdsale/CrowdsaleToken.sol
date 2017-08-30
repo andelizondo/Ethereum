@@ -1,13 +1,12 @@
 pragma solidity ^0.4.15;
 
 import './BasicToken.sol';
-import './TradeableToken.sol';
-import './MintableToken.sol';
+import './BasicCrowdsaleToken.sol';
 import './BurnableToken.sol';
 import './FrozableToken.sol';
 import './Disposable.sol';
 
-contract CrowdsaleToken is Token, Tradeable, Mintable, Burnable, Frozable, Disposable {
+contract CrowdsaleToken is Token, BasicCrowdsaleToken, Burnable, Frozable, Disposable {
 	// Basic Token Properties
 	string private _version = '0.1';
 	string private _name = 'Fiets';
@@ -19,11 +18,11 @@ contract CrowdsaleToken is Token, Tradeable, Mintable, Burnable, Frozable, Dispo
 	uint256 _tokenPrice = 210;
 	uint256 _etherPrice = 270;
 
-	/* Initializes contract with its initial Basic and Tradeable properties */
+	/* Initializes contract with its initial Basic and Crowdsale properties */
 	function CrowdsaleToken(
 	) Token (
 		_version, _name, _symbol, _decimals, _totalSupply
-	) Tradeable (
+	) BasicCrowdsaleToken (
 		_tokenPrice, _etherPrice
 	) {}
 
