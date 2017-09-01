@@ -2,7 +2,6 @@ pragma solidity ^0.4.15;
 
 import './ClosableCrowdsale.sol';
 import './CrowdsaleVault.sol';
-import './CrowdsaleToken.sol';
 
 /**
  * @title RefundableCrowdsale
@@ -11,7 +10,6 @@ import './CrowdsaleToken.sol';
  * Uses a RefundVault as the crowdsale's vault.
  */
 contract Refundable is Closable {
-
     // minimum amount of funds to be raised in weis
     uint256 public fundingGoal;
 
@@ -24,19 +22,6 @@ contract Refundable is Closable {
         fundingGoal = _fundingGoal * 1 ether;
     }
 
-    // creates the token to be sold.
-    // override this method to have crowdsale of a specific mintable and tradeable token.
-    function _setTokenContract(address _tokenAddress) internal {
-        crowdsaleToken = CrowdsaleToken(_tokenAddress);     // Opens the token previously created crowdsale token 
-        require(crowdsaleToken.owner() == msg.sender);      // Checks that the crowdsale creator is the owner of the Token
-        // _crowdsaleToken.approveMintAgent(this, true);     // TODO: Approve this contract as Mint Agent
-    }
-
-    // Overriding the function that calculates the crowdsale token price
-    function _getTokenAmount(uint256 _ethAmount) internal constant returns (uint256) {
-        return (_ethAmount * (10 ** uint256(crowdsaleToken.decimals()))) / crowdsaleToken.tokenPriceInWei();
-    }
-    
     // We're overriding the fund forwarding from Basic Crowdsale.
     // In addition to sending the funds, we want to call
     // the RefundVault deposit function
@@ -58,7 +43,8 @@ contract Refundable is Closable {
         } else {
             vault.enableRefunds();
         }
-        super._close();
+        // Gives ownership of the tokens back to the crowdsale creator
+        crowdsaleToken.transferOwnership(owner);
     }
 
     function goalReached() public constant returns (bool) {

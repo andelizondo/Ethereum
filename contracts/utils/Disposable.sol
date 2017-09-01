@@ -7,7 +7,7 @@ contract Disposable is Ownable {
 	// and which account got the remaining balance on the contract
 	event Dispose(address indexed _owner, uint256 _value);
 
-	function kill() onlyOwner {
+	function dispose() onlyOwner {
 		Dispose(owner, this.balance);
 		selfdestruct(owner);
 	}

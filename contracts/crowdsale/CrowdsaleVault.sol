@@ -1,6 +1,7 @@
 pragma solidity ^0.4.15;
 
 import './Ownable.sol';
+import './Disposable.sol';
 
 /**
 * @title RefundVault
@@ -8,7 +9,7 @@ import './Ownable.sol';
 * is in progress. Supports refunding the money if crowdsale fails,
 * and forwarding it if crowdsale is successful.
 */
-contract CrowdsaleVault is Ownable {
+contract CrowdsaleVault is Ownable, Disposable {
     enum State { Active, Refunding, Closed }
 
     State public state;

@@ -47,8 +47,11 @@ contract Crowdsale {
 
 	// internal interface that creates/instantiates the token to be sold.
     // override this method to have crowdsale of a specific mintable token.
-    function _setTokenContract(address _tokenAddress) internal;
-    
+    function _setTokenContract(address _tokenAddress) internal {
+        crowdsaleToken = BasicCrowdsaleToken(_tokenAddress);    // Opens a previously created crowdsale token
+        require(crowdsaleToken.owner() == address(this));       // Checks that the crowdsale creator is the owner of the Token
+    }
+
     // fallback function can be used to buy tokens
     function () payable {
         buyTokens(msg.sender);

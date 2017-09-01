@@ -22,15 +22,13 @@ contract Closable is Crowdsale, Ownable {
         require(hasEnded());
 
         _close();
-    }
 
-    /**
-    * @dev Can be overriden to add closure logic. The overriding function
-    * should call super._close() to ensure the chain of closure is
-    * executed entirely.
-    */
-    function _close() internal {
         isClosed = true;
         CrowdsaleClosed(owner);
     }
+
+    /**
+    * @dev Abstract method to add closure logic.
+    */
+    function _close() internal;
 }

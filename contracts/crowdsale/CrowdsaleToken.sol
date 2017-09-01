@@ -4,9 +4,8 @@ import './BasicToken.sol';
 import './BasicCrowdsaleToken.sol';
 import './BurnableToken.sol';
 import './FrozableToken.sol';
-import './Disposable.sol';
 
-contract CrowdsaleToken is Token, BasicCrowdsaleToken, Burnable, Frozable, Disposable {
+contract CrowdsaleToken is Token, BasicCrowdsaleToken, Burnable, Frozable {
 	// Basic Token Properties
 	string private _version = '0.1';
 	string private _name = 'Fiets';
@@ -30,4 +29,11 @@ contract CrowdsaleToken is Token, BasicCrowdsaleToken, Burnable, Frozable, Dispo
 	function () payable {
         buy();
     }
+
+	// TODO: This could be implemented within an Transferable contract
+    // Overrides ownership transfer to also give all tokens to crowdsale owner
+	function transferOwnership(address _newOwner) onlyOwner returns (bool success) {
+		_transfer(owner, _newOwner, balanceOf[owner]);
+		return super.transferOwnership(_newOwner);
+	}
 }
