@@ -26,7 +26,9 @@ contract CrowdsaleToken is Token, Tradeable, Mintable, Burnable, Frozable, Dispo
 	// TODO: This could be implemented within an Transferable contract
     // Overrides ownership transfer to also give all tokens to crowdsale owner
 	function transferOwnership(address _newOwner) onlyOwner returns (bool success) {
-		_transfer(owner, _newOwner, balanceOf[owner]);
+		if(balanceOf[owner] > 0){
+			_transfer(owner, _newOwner, balanceOf[owner]);
+		}
 		return super.transferOwnership(_newOwner);
 	}
 }
