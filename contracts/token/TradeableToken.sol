@@ -23,24 +23,33 @@ contract Tradeable is Token {
 		PriceUpdate(msg.sender, tokenPrice, etherPrice, tokenPriceInWei());
 	}
 
-	// @return true if crowdsale event has ended
+	// @return the price of the token in Wei according to the current exchange prices
     function tokenPriceInWei() constant returns (uint256) {
         return 1 ether * tokenPrice / etherPrice;
     }
 
 	/* Buys tokens with Eth at current Token price */
 	function buy() payable returns (uint256 amount) {
-		amount = (msg.value * (10 ** uint256(decimals))) / tokenPriceInWei();	// calculates the amount of tokens to send
+		amount = amountOfTokensToBuy(msg.value);			// calculates the amount of tokens to send
 		_transfer(owner, msg.sender, amount);				// Transfer the amount from the owner to the sender
+
+		var change = msg.value - valueOfTokensToSell(amount);
+		msg.sender.transfer(change);     					// returns change to the sender.
 		return amount;										// ends function and returns
+	}
+	function amountOfTokensToBuy(uint256 _valueInWei) constant returns (uint256 amount) {
+		return (_valueInWei * (10 ** uint256(decimals))) / tokenPriceInWei();
 	}
 
 	/* Sells tokens for Eth at current Token price */
-	function sell(uint256 _amount) returns (uint256 revenue) {
-		revenue = _amount * tokenPriceInWei() / (10 ** uint256(decimals));		// calculates the amount of eth to send
-		require(this.balance >= revenue);    				// checks if the contract has enough ether to buy the tokens
+	function sell(uint256 _amount) returns (uint256 value) {
+		value = valueOfTokensToSell(_amount);				// calculates the amount of eth to send
+		require(this.balance >= value);    					// checks if the contract has enough ether to buy the tokens
 		_transfer(msg.sender, owner, _amount);				// Transfer the amount from the sender to the owner
-		msg.sender.transfer(revenue);     					// sends ether to the seller. It's important to do this last to avoid recursion attacks
-		return revenue;
+		msg.sender.transfer(value);     					// sends ether to the seller. It's important to do this last to avoid recursion attacks
+		return value;
+	}
+	function valueOfTokensToSell(uint256 _amount) constant returns (uint256 valueInWei) {
+		return _amount * tokenPriceInWei() / (10 ** uint256(decimals));
 	}
 }

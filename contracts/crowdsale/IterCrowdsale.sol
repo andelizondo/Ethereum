@@ -7,9 +7,9 @@ import './Disposable.sol';
 contract IterCrowdsale is Crowdsale, Refundable, Disposable {
 	// Basic Crowdsale Properties
     uint256 _startTime = now;
-    uint256 _endTime = now + 12 * 1 minutes;
+    uint256 _endTime = now + 5 * 1 minutes;
     address _wallet = msg.sender;
-    //address _token = 0xccfC733783A54aeC7F2d654011F9D7ce41ef395c;
+    //address _token = 0x012cd5AD35e3051Cdb18a7F28c624D2D676b2425;
     CrowdsaleToken _token = new CrowdsaleToken();
 
 	// Refundable Crowdsale Properties
@@ -23,22 +23,32 @@ contract IterCrowdsale is Crowdsale, Refundable, Disposable {
 		_fundingGoal
 	) {}
 
-	// Overriding this method to have crowdsale of the previously created token.
+	// overriding the original method to bypass ownership check and save gas on creation.
     function _setTokenContract(address _tokenAddress) internal {
-        crowdsaleToken = _token;
+        crowdsaleToken = CrowdsaleToken(_tokenAddress);    // Opens a previously created crowdsale token
     }
 
-    // Overriding the function that calculates the crowdsale token price
-    function _getTokenAmount(uint256 _ethAmount) internal constant returns (uint256) {
-        return (_ethAmount * (10 ** uint256(crowdsaleToken.decimals()))) / crowdsaleToken.tokenPriceInWei();
+    // Overriding the basic function to give change when buying tokens
+    function _buy(address _to, uint256 _value) internal {
+        uint256 tokenAmount = crowdsaleToken.amountOfTokensToBuy(_value);       // calculate token amount to be created
+        crowdsaleToken.mint(_to, tokenAmount);
+
+        var tokenValue = crowdsaleToken.valueOfTokensToSell(tokenAmount);
+        var change = msg.value - tokenValue;
+		msg.sender.transfer(change);     					// returns change to the sender.
+
+        // update state
+        amountRaised += tokenValue;
+        forwardFunds(tokenValue);							// Stores in the vault only the value of the purchased tokens
+        TokenPurchase(msg.sender, _to, tokenValue, tokenAmount);
     }
 
-	// TODO: Improve disposing methods (Token -> Vault -> Crowdsale)
+	// Custom disposing method (Token -> Vault -> Crowdsale)
 	function dispose() onlyOwner {
 	    if (crowdsaleToken.owner() != 0 && crowdsaleToken.owner() == address(this)) {
 	        crowdsaleToken.dispose();
 	    }
-	    if (vault.owner() != 0) {
+	    if (vault.owner() != 0 && vault.owner() == address(this)) {
 	        vault.dispose();
 	    }
 	    super.dispose();

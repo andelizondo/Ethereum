@@ -43,8 +43,11 @@ contract Refundable is Closable {
         } else {
             vault.enableRefunds();
         }
-        // Gives ownership of the tokens back to the crowdsale creator
-        crowdsaleToken.transferOwnership(owner);
+
+        // If crowdsale is owner of token, give ownership back to the crowdsale creator
+        if (crowdsaleToken.owner() == address(this)) {
+            crowdsaleToken.transferOwnership(owner);
+        }
     }
 
     function goalReached() public constant returns (bool) {

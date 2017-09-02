@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './BasicCrowdsaleToken.sol';
+import './CrowdsaleToken.sol';
 
 /**
 * @title Crowdsale
@@ -12,7 +12,7 @@ import './BasicCrowdsaleToken.sol';
 */
 contract Crowdsale {
     // The token being sold
-    BasicCrowdsaleToken public crowdsaleToken;
+    CrowdsaleToken public crowdsaleToken;
 
     // start and end timestamps where investments are allowed (both inclusive)
     uint256 public startTime;
@@ -45,11 +45,11 @@ contract Crowdsale {
         wallet = _wallet;
     }
 
-	// internal interface that creates/instantiates the token to be sold.
+	// internal method that creates/instantiates the token to be sold.
     // override this method to have crowdsale of a specific mintable token.
     function _setTokenContract(address _tokenAddress) internal {
-        crowdsaleToken = BasicCrowdsaleToken(_tokenAddress);    // Opens a previously created crowdsale token
-        require(crowdsaleToken.owner() == address(this));       // Checks that the crowdsale creator is the owner of the Token
+        crowdsaleToken = CrowdsaleToken(_tokenAddress);    // Opens a previously created crowdsale token
+        require(crowdsaleToken.owner() == msg.sender);       // Checks that the crowdsale creator is the owner of the Token
     }
 
     // fallback function can be used to buy tokens
@@ -62,21 +62,22 @@ contract Crowdsale {
         require(beneficiary != 0x0);
         require(validPurchase());
 
-        uint256 ethAmount = msg.value;                          // Total amount of Ether sent by sender (in wei)
-        uint256 tokenAmount = _getTokenAmount(ethAmount);       // calculate token amount to be created
+        _buy(beneficiary, msg.value);
 
         // update state
-        amountRaised += ethAmount;
-
-        crowdsaleToken.mint(beneficiary, tokenAmount);
-        TokenPurchase(msg.sender, beneficiary, ethAmount, tokenAmount);
-
+        amountRaised += msg.value;
         forwardFunds();
     }
 
-    // internal interface to calculate the crowdsale token price
-    // override to provide different token price calculations
-    function _getTokenAmount(uint256 _ethAmount) internal constant returns (uint256);
+    // Buy tokens depending on the amount of Ether sent
+    // Override this function to extend basic functionalities
+    // eg. provide different token price calculations
+    //     or use a non-mintable token, etc.
+    function _buy(address _to, uint256 _value) internal {
+        uint256 tokenAmount = crowdsaleToken.amountOfTokensToBuy(_value);       // calculate token amount to be created
+        crowdsaleToken.mint(_to, tokenAmount);
+        TokenPurchase(msg.sender, _to, _value, tokenAmount);
+    }
 
     // send ether to the fund collection wallet
     // override to create custom fund forwarding mechanisms
