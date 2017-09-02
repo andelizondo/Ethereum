@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './Ownable.sol';
+import './Utils-Ownable.sol';
 
 contract Disposable is Ownable {
 	// This notifies clients about the self destruction of the contract

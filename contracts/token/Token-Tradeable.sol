@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './BasicToken.sol';
+import './Token-Basic.sol';
 
 contract Tradeable is Token {
 	/* Public variables of the eth/token price */

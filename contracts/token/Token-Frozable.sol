@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './BasicToken.sol';
+import './Token-Basic.sol';
 
 contract Frozable is Token {
 	mapping (address => bool) public frozenAccount;

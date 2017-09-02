@@ -1,31 +1,42 @@
 pragma solidity ^0.4.15;
 
-import './CrowdsaleToken.sol';
-import './RefundableCrowdsale.sol';
-import './Disposable.sol';
+import './Crowdsale-Token.sol';
+import './Crowdsale-Refundable.sol';
+import './Utils-Disposable.sol';
 
-contract IterCrowdsale is Crowdsale, Refundable, Disposable {
+contract CrowdsaleFiets is Crowdsale, Refundable, Disposable {
 	// Basic Crowdsale Properties
     uint256 _startTime = now;
     uint256 _endTime = now + 5 * 1 minutes;
     address _wallet = msg.sender;
-    //address _token = 0x012cd5AD35e3051Cdb18a7F28c624D2D676b2425;
-    CrowdsaleToken _token = new CrowdsaleToken();
+
+	// Crowdsale Token Properties
+	// Basic Token Properties
+	string private _version = '0.12';
+	string private _name = 'Fiets';
+	string private _symbol = hex"F09F9AB2";
+	uint8  private _decimals = 0;
+	uint256 private _totalSupply = 0;
+	uint256 _tokenPrice = 210;
+	uint256 _etherPrice = 270;
+    CrowdsaleToken _token = new CrowdsaleToken(_version, _name, _symbol, _decimals, _totalSupply, _tokenPrice, _etherPrice);
+    //address _token = 0x03d5cd402d6640792224da60997e931a70770ad5; // Use this line when token was previously created
 
 	// Refundable Crowdsale Properties
 	uint256 private _fundingGoal = 21;
 
 	/* Initializes contract with its initial Basic and Tradeable properties */
-	function IterCrowdsale(
+	function CrowdsaleFiets(
 	) Crowdsale (
         _startTime, _endTime, _wallet, _token
     ) Refundable (
 		_fundingGoal
 	) {}
 
-	// overriding the original method to bypass ownership check and save gas on creation.
+    // USE WHEN CREATING NEW TOKEN
+    // overriding the original method to bypass ownership check and save gas on creation.
     function _setTokenContract(address _tokenAddress) internal {
-        crowdsaleToken = CrowdsaleToken(_tokenAddress);    // Opens a previously created crowdsale token
+        crowdsaleToken = _token;
     }
 
     // Overriding the basic function to give change when buying tokens

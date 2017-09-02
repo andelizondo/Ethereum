@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './BasicToken.sol';
+import './Token-Basic.sol';
 
 contract Burnable is Token {
 	/* This notifies clients about the amount burnt */

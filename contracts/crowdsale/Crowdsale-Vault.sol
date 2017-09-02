@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
-import './Ownable.sol';
-import './Disposable.sol';
+import './Utils-Ownable.sol';
+import './Utils-Disposable.sol';
 
 /**
 * @title RefundVault

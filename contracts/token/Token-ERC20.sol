@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './HumanReadableToken.sol';
+import './Token-HumanReadable.sol';
 
 contract ERC20 is HumanReadable {
 	// ERC Token Standard #20 Interface

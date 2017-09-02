@@ -1,7 +1,7 @@
 pragma solidity ^0.4.15;
 
-import './BasicCrowdsale.sol';
-import './Ownable.sol';
+import './Crowdsale-Basic.sol';
+import './Utils-Ownable.sol';
 
 /**
 * @title ClosableCrowdsale

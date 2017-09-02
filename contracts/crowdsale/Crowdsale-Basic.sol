@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-import './CrowdsaleToken.sol';
+import './Crowdsale-Token.sol';
 
 /**
 * @title Crowdsale
@@ -63,10 +63,6 @@ contract Crowdsale {
         require(validPurchase());
 
         _buy(beneficiary, msg.value);
-
-        // update state
-        amountRaised += msg.value;
-        forwardFunds();
     }
 
     // Buy tokens depending on the amount of Ether sent
@@ -76,13 +72,17 @@ contract Crowdsale {
     function _buy(address _to, uint256 _value) internal {
         uint256 tokenAmount = crowdsaleToken.amountOfTokensToBuy(_value);       // calculate token amount to be created
         crowdsaleToken.mint(_to, tokenAmount);
+
+        // update state
+        amountRaised += _value;
+        forwardFunds(_value);
         TokenPurchase(msg.sender, _to, _value, tokenAmount);
     }
 
     // send ether to the fund collection wallet
     // override to create custom fund forwarding mechanisms
-    function forwardFunds() internal {
-        wallet.transfer(msg.value);
+    function forwardFunds(uint256 _value) internal {
+        wallet.transfer(_value);
     }
 
     // @return true if the transaction can buy tokens
